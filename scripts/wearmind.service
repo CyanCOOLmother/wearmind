@@ -1,0 +1,20 @@
+[Unit]
+Description=WearMind competition demo on CIX board
+After=wearmind-qwen.service
+Wants=wearmind-qwen.service
+
+[Service]
+Type=simple
+User=cix
+WorkingDirectory=/home/cix/wearmind-v2-release-20261108-122821
+Environment=WEARMIND_DATA=/home/cix/wearmind-v2-release-20261108-122821/data
+Environment=WEARMIND_LOCAL_RUNTIME=llamacpp
+Environment=WEARMIND_LOCAL_MODEL=wearmind-qwen2.5-1.5b
+Environment=WEARMIND_STRICT_PORT=1
+Environment=LD_LIBRARY_PATH=/usr/share/cix/lib
+ExecStart=/usr/bin/bash /home/cix/wearmind-v2-release-20261108-122821/scripts/start-board.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

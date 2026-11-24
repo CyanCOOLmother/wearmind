@@ -1,0 +1,91 @@
+{
+  "米白柔软针织衫": {
+    "file": "knit-cutout.png",
+    "source_url": "https://www.stylehint.com/jp/ja/item/278014212",
+    "original_url": "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/438789/item/goods_01_438789.jpg",
+    "original_color": "#e4d9c4",
+    "kind": "demo_reference",
+    "original_file": "knit.jpg",
+    "processing": "imagegen-background-extraction"
+  },
+  "浅蓝棉衬衫": {
+    "file": "shirt-cutout.png",
+    "source_url": "https://www.withnothingunderneath.com/products/the-classic-fine-poplin-sky-blue",
+    "original_url": "https://www.withnothingunderneath.com/cdn/shop/files/18682775_WNU-CSNP-FP-SKB_flatpack_1.png?v=1772724057&width=1000",
+    "original_color": "#b8ced2",
+    "kind": "demo_reference",
+    "original_file": "shirt.png",
+    "processing": "imagegen-background-extraction"
+  },
+  "白色运动 T 恤": {
+    "file": "tee-cutout.png",
+    "source_url": "https://www.miir.com/products/everyday-crew-neck-t-shirt",
+    "original_url": "https://www.miir.com/cdn/shop/files/Back_White__SST001001XS__SST001001S__SST001001M__SST001001L__SST001001XL__SST0010012XL__SST0010013XL.jpg?v=1771536099&width=800",
+    "original_color": "#f0eee8",
+    "kind": "demo_reference",
+    "original_file": "tee.jpg",
+    "processing": "imagegen-background-extraction"
+  },
+  "黑色松紧阔腿裤": {
+    "file": "trousers.png",
+    "source_url": "https://www.cabionline.com/products/toni-trouser",
+    "original_url": "https://www.cabionline.com/cdn/shop/files/47_6861_ToniTrouser_Black.png?v=1768329914&width=800",
+    "original_color": "#414448",
+    "kind": "demo_reference",
+    "processing": "original-transparent-png"
+  },
+  "修身牛仔裤": {
+    "file": "jeans-cutout.png",
+    "source_url": "https://www.next.co.uk/style/SU613858/F20443",
+    "original_url": "https://xcdn.next.co.uk/common/items/default/default/itemimages/3_4Ratio/product/lge/F20443s.jpg?im=Resize%2Cwidth%3D750",
+    "original_color": "#65778c",
+    "kind": "demo_reference",
+    "original_file": "jeans.jpg",
+    "processing": "imagegen-background-extraction"
+  },
+  "防水平底短靴": {
+    "file": "boots-cutout.png",
+    "source_url": "https://www.marksandspencer.com.tr/kadin-kahverengi-regular-fit-chelsea-bot-10000000554013/",
+    "original_url": "https://a53e12.a-cdn.akinoncloud.com/products/2025/07/26/714096/28b8f629-b3cc-4fa0-aa45-74d11ccb2c1d_size1100x1430_cropCenter.jpg",
+    "original_color": "#8a6955",
+    "kind": "demo_reference",
+    "original_file": "boots.jpg",
+    "processing": "imagegen-background-extraction"
+  },
+  "灰色运动裤": {
+    "file": "joggers-cutout.png",
+    "source_url": "https://blankkingdom.com/products/copy-of-blue-heavy-blend-fleece-sweatpant",
+    "original_url": "https://blankkingdom.com/cdn/shop/files/gray-heavy-blend-fleece-sweatpants-flat-lay-correct-color-and-drawstrings.png?v=1769876750&width=800",
+    "original_color": "#a1a49e",
+    "kind": "demo_reference",
+    "original_file": "joggers.png",
+    "processing": "imagegen-background-extraction"
+  },
+  "小白鞋": {
+    "file": "sneakers-cutout.png",
+    "source_url": "https://aldoshoes.co.uk/products/finespec-white-13451152",
+    "original_url": "https://aldoshoes.co.uk/cdn/shop/files/finespec_white_110-002-043_main_sq_nt_1600x1600_9a39e91e-d33d-4cd1-a509-ac2a0e7ba7bc.jpg?v=1771862159&width=800",
+    "original_color": "#ece9df",
+    "kind": "demo_reference",
+    "original_file": "sneakers.jpg",
+    "processing": "imagegen-background-extraction"
+  },
+  "轻暖开衫": {
+    "file": "cardigan-cutout.png",
+    "source_url": "https://www.29cm.co.kr/products/2879212",
+    "original_url": "https://img.29cm.co.kr/item/202410/11ef8524fbc938a28fb2ed2d05371a65.jpg?format=webp&width=800",
+    "original_color": "#b7a08a",
+    "kind": "demo_reference",
+    "original_file": "cardigan.webp",
+    "processing": "imagegen-background-extraction"
+  },
+  "羊毛大衣": {
+    "file": "coat-cutout.png",
+    "source_url": "https://www.wolfandbadger.com/us/wool-coat-brown/",
+    "original_url": "https://res.cloudinary.com/wolfandbadger/image/upload/f_auto%2Cq_auto%3Abest%2Cc_pad%2Cb_white%2Ch_800%2Cw_800/products/wool-coat-brown__795c0ad48e4f82af6e69a3fc6bba52b4",
+    "original_color": "#766456",
+    "kind": "demo_reference",
+    "original_file": "coat.jpg",
+    "processing": "imagegen-background-extraction"
+  }
+}

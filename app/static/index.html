@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>衣伴 · 开发板本地模型版</title>
+<link rel="stylesheet" href="/style.css">
+<body>
+<header>
+<a class="brand" href="/">◉ <b>衣伴</b>
+<span>WearMind</span>
+</a>
+<nav>
+<button data-view="today" class="active">今日穿搭</button>
+<button data-view="closet">我的衣橱</button>
+<button data-view="trip">旅游路线</button>
+<button data-view="ootd">OOTD 出片</button>
+<button data-view="device">本地模型</button>
+<button data-view="history">穿搭记忆</button>
+</nav>
+<span class="local" id="edge-status">● 开发板本地模型版 · 待检测模型</span>
+</header>
+<main>
+<section id="today" class="view">
+<div class="eyebrow">YOUR WARDROBE, YOUR STORY · 秋日衣伴</div>
+<div class="intro">
+<div>
+<h1>穿得自在，也拍得好看。</h1>
+<p>天气、目的地、喜欢的颜色，和今天真实的你。把衣橱搭好，再记录属于你的 OOTD。</p>
+</div>
+<div class="orb" aria-hidden="true">
+<i>
+</i>
+<span>⌣</span>
+</div>
+</div>
+<div class="layout">
+<form id="context" class="panel">
+<div class="section-label">01 / 感知今天</div>
+<h2>先照顾你的感受</h2>
+<label for="state">今天的身体状态与想法</label>
+<textarea id="state" placeholder="例如：今天有点累，腰腹不舒服，想穿宽松一点。">今天有点累，想舒服一点</textarea>
+<div class="body-flags" id="body-flags">
+<label>
+<input type="checkbox" value="疲惫">疲惫</label>
+<label>
+<input type="checkbox" value="怕冷">怕冷</label>
+<label>
+<input type="checkbox" value="怕热">怕热</label>
+<label>
+<input type="checkbox" value="腰腹敏感">腰腹敏感</label>
+</div>
+<div class="actions body-actions">
+<button type="button" id="understand-body">用本机模型整理</button>
+<button type="button" id="save-body">保存今日感受</button>
+</div>
+<div id="body-preview" role="status">
+</div>
+<details class="context-fold">
+<summary>天气与目的地 <span>城市 · 日期 · 去哪里</span>
+</summary>
+<div class="weather-tools">
+<label for="city-query">出发地 / 当前城市</label>
+<div class="inline">
+<input id="city-query" placeholder="搜索城市，例如上海">
+<button type="button" id="city-search">搜索</button>
+</div>
+<div id="city-results" class="city-results">
+</div>
+<button type="button" id="locate">使用当前位置</button>
+<small>点击后才请求定位；坐标取两位小数后发送给 Open-Meteo 查询天气。</small>
+<div id="weather-report" class="weather-report" role="status">尚未获取天气，请选择城市或手动填写。</div>
+<button type="button" id="refresh-weather" hidden>刷新天气</button>
+</div>
+<div class="fields">
+<div>
+<label for="temperature">气温 · ℃</label>
+<input id="temperature" type="number" min="-30" max="50" step="0.1" value="22" required>
+</div>
+<div>
+<label for="weather">天气</label>
+<select id="weather">
+<option>晴天</option>
+<option>阴天</option>
+<option>雨天</option>
+<option>雪天</option>
+</select>
+</div>
+</div>
+<small id="weather-mode">当前使用手动天气</small>
+<section class="destination-tools">
+<label for="destination-query">要去的目的地城市（可选）</label>
+<div class="inline">
+<input id="destination-query" placeholder="例如杭州；留空使用当前城市天气">
+<button id="destination-search" type="button">选择目的地</button>
+</div>
+<div id="destination-results" class="city-results">
+</div>
+<label for="destination-date">到达日期</label>
+<input id="destination-date" type="date">
+<div id="destination-weather" class="weather-report" role="status">未选择目的地，使用上方天气。</div>
+<label for="venue">具体要去哪里？</label>
+<input id="venue" maxlength="120" placeholder="例如客户办公室、海边咖啡馆、公园">
+<label for="environment">目的地环境</label>
+<select id="environment">
+<option>室内为主</option>
+<option>户外步行</option>
+<option>海边</option>
+<option>山地</option>
+</select>
+</section>
+</details>
+<label for="scene">当天场景</label>
+<select id="scene">
+<option>通勤</option>
+<option>客户会面</option>
+<option>休闲</option>
+<option>运动</option>
+<option>约会</option>
+</select>
+<details class="context-fold">
+<summary>今天想穿什么颜色？ <span>期望配色 · 避开色</span>
+</summary>
+<fieldset class="palette-field">
+<legend>期望配色 · 最多三种</legend>
+<div id="preferred-colors" class="color-options">
+</div>
+<small>不选则自由搭配；尽量覆盖所选颜色，天气与舒适要求同时参与推荐。</small>
+<label for="avoided-colors">今天想避开的颜色（可多选，最多三种）</label>
+<select id="avoided-colors" multiple>
+</select>
+</fieldset>
+</details>
+<button class="primary" type="submit">为今天搭一套 <span>↗</span>
+</button>
+<small>身体状态仅用于穿衣舒适度判断。</small>
+</form>
+<section class="panel result">
+<div class="section-label">02 / 适合今天的你</div>
+<div class="result-heading">
+<h2>今天这套，刚刚好。</h2>
+<span class="pill">衣橱内搭配</span>
+</div>
+<div class="look-meta">
+<span id="look-context">TODAY’S LOOK</span>
+<span id="look-palette">
+</span>
+</div>
+<div id="outfit" class="outfit look-board">
+</div>
+<p class="image-caption">优先展示你的实拍；演示衣物配有注明来源的实物参考图。</p>
+<div class="explain">
+<h3>为什么这样搭？</h3>
+<ul id="reasons">
+</ul>
+</div>
+<div id="shopping-needs">
+</div>
+<div class="actions">
+<button id="save" class="primary">保存今日穿搭</button>
+<button id="accept">这套适合我 ♡</button>
+</div>
+<div class="shoot-teaser">
+<div>
+<small>MAKE IT YOUR OOTD</small>
+<h3 id="pose-teaser">把今天的穿搭拍下来</h3>
+<p>姿势、镜头、光线，一起准备好。</p>
+</div>
+<button id="open-ootd">去看拍照指导 ↗</button>
+</div>
+<p class="muted" id="source">
+</p>
+</section>
+</div>
+</section>
+<section id="closet" class="view" hidden>
+<div class="eyebrow">YOUR PERSONAL WARDROBE</div>
+<h1>我的衣橱</h1>
+<p>初始衣物是演示数据，可以继续加入你自己的单品。数据只保存在本机。</p>
+<section class="panel photo-panel">
+<div class="section-label">PHOTO TO WARDROBE</div>
+<h2>拍下衣服，放进衣橱</h2>
+<p>透明 PNG 可直接保留去底效果。普通实拍也可导入，识别后由你确认名称和标签。</p>
+<label for="photo">衣物照片 · 支持透明 PNG</label>
+<input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+<img id="photo-preview" hidden alt="待入库衣物预览">
+<p id="vision-status" role="status">正在检查识别配置…</p>
+<label class="consent" hidden>
+<input id="vision-consent" type="checkbox">同意将本次照片发送给 OpenAI 识别（按所配置的 API 计费）</label>
+<button type="button" id="recognize" disabled>本地视觉模型待接入</button>
+<div hidden>
+<input id="vision-key">
+<input id="vision-model">
+<button id="configure-vision" type="button">
+</button>
+</div>
+<button type="button" id="clear-photo" hidden>移除照片</button>
+<p id="recognition-note" role="status">照片保存在运行衣伴的设备本地；本版本不调用云端图片识别。</p>
+<small>开发板版禁用云端识别。本地视觉模型尚未接入，可先上传并手动确认。</small>
+</section>
+<form id="add" class="panel add">
+<label>衣物名称<input id="name" maxlength="60" placeholder="例如：米色棉麻衬衫" required>
+</label>
+<label>分类<select id="category">
+<option>上装</option>
+<option>下装</option>
+<option>鞋履</option>
+<option>外套</option>
+</select>
+</label>
+<label>衣物主色<select id="item-color">
+<option value="">自动参考名称 / 图片颜色</option>
+</select>
+</label>
+<label>标签（可多选）<select id="tags" multiple>
+<option>舒适</option>
+<option>紧腰</option>
+<option>高跟</option>
+<option>防水</option>
+<option>怕水</option>
+<option>保暖</option>
+<option>透气</option>
+<option>厚重</option>
+<option>通勤</option>
+<option>客户会面</option>
+<option>休闲</option>
+<option>运动</option>
+<option>约会</option>
+</select>
+</label>
+<button class="primary">确认并加入衣橱</button>
+</form>
+<div id="wardrobe" class="wardrobe">
+</div>
+<section class="panel wish-panel">
+<h2>补购愿望</h2>
+<div id="wishlist">
+</div>
+<small>这里只记录需要进一步考虑的颜色，尚未接入商家商品或购买服务。</small>
+</section>
+</section>
+<section id="trip" class="view" hidden>
+<div class="eyebrow">PACK FOR THE JOURNEY</div>
+<h1>旅行，也穿得从容。</h1>
+<p>按行程添加目的地与日期，结合每天的天气安排搭配，再汇总行李。更远的日期会提示临近出发再查询。</p>
+<div class="panel">
+<label for="trip-state">旅行中的身体状态与活动安排</label>
+<input id="trip-state" placeholder="例如：怕冷，需要走很多路，想穿轻便一点">
+<fieldset class="palette-field">
+<legend>旅行期望配色 · 最多三种</legend>
+<div id="trip-colors" class="color-options">
+</div>
+</fieldset>
+<div id="trip-stops">
+</div>
+<div class="actions">
+<button id="add-stop">添加一站</button>
+<button class="primary" id="plan-trip">查看沿途天气与穿搭</button>
+</div>
+<small>按你指定的顺序安排穿搭行程，不提供交通导航或自动景点规划。</small>
+</div>
+<div id="trip-result" aria-live="polite">
+</div>
+</section>
+<section id="ootd" class="view" hidden>
+<div class="eyebrow">WEAR IT. FEEL IT. CAPTURE IT.</div>
+<div class="ootd-heading">
+<div>
+<h1>今天的你，值得被记录。</h1>
+<p id="ootd-context">沿用刚才的穿搭与目的地，为这套搭配找一个自然的姿势。</p>
+</div>
+<span class="pill">穿搭 × 构图 × 分享</span>
+</div>
+<div class="ootd-grid">
+<div>
+<section class="panel pose-stage">
+<div class="section-label">01 / 找到舒服的姿势</div>
+<div id="pose-tabs" class="pose-tabs">
+</div>
+<div class="pose-visual">
+<div id="pose-drawing">
+</div>
+<div class="frame-label">3 : 4 · 构图参考</div>
+<span class="frame-corner top-left">
+</span>
+<span class="frame-corner bottom-right">
+</span>
+</div>
+<h2 id="pose-title">
+</h2>
+<ol id="pose-steps">
+</ol>
+</section>
+<section class="panel capture-panel">
+<div class="section-label">02 / 跟着构图线，拍一张</div>
+<p>可打开相机参考姿势和构图线，也可以从相册选择已经拍好的成片。</p>
+<div class="camera-wrap" id="camera-wrap" hidden>
+<video id="camera" autoplay muted playsinline>
+</video>
+<div class="camera-grid">
+</div>
+<div id="camera-pose" class="camera-pose">
+</div>
+</div>
+<div class="actions">
+<button id="start-camera">打开相机指导</button>
+<button id="take-photo" hidden>拍下这一刻</button>
+<button id="stop-camera" hidden>关闭相机</button>
+</div>
+<label for="ootd-photo">选择你的 OOTD 成片</label>
+<input id="ootd-photo" type="file" accept="image/jpeg,image/png,image/webp">
+<img id="ootd-photo-preview" alt="本机 OOTD 成片预览" hidden>
+<button id="remove-ootd-photo" hidden>移除成片</button>
+<div class="npu-pose-panel">
+<b>本机 NPU 姿势分析</b>
+<p>已选择成片后，可在开发板本机识别人物与姿势关键点，帮助检查人物构图。不会上传云端，也不评价身材。</p>
+<button type="button" id="analyze-ootd-pose">用本机 NPU 分析这张照片</button>
+<p id="npu-pose-status" class="muted">正在检查本机姿势模型…</p>
+<img id="npu-pose-preview" alt="NPU 姿势关键点分析结果" hidden>
+</div>
+<small>相机和成片仅用于本机预览与导出，不会自动发送给模型或社交平台。</small>
+</section>
+</div>
+<div>
+<section class="panel shooting-notes">
+<div class="section-label">SHOT NOTES / 出片小抄</div>
+<div class="note-block">
+<span>镜头</span>
+<p id="pose-lens">
+</p>
+</div>
+<div class="note-block">
+<span>构图</span>
+<p id="pose-frame">
+</p>
+</div>
+<div class="note-block">
+<span>光线</span>
+<p id="pose-light">
+</p>
+</div>
+<div id="pose-notes" class="pose-notes">
+</div>
+</section>
+<section class="panel share-panel">
+<div class="section-label">03 / 留下一张今日穿搭卡</div>
+<h2>让今天有个封面。</h2>
+<label for="share-caption">分享文案</label>
+<textarea id="share-caption" maxlength="100">今天的穿搭，舒服也有自己的风格。</textarea>
+<label class="consent">
+<input id="share-location" type="checkbox">在卡片中加入目的地与天气</label>
+<div class="actions">
+<button id="make-card" class="primary">生成分享卡</button>
+<a id="download-card" hidden download="WearMind-OOTD.png">保存图片 ↓</a>
+</div>
+<img id="share-preview" alt="OOTD 分享卡预览" hidden>
+<small>没有成片时生成衣物拼板；有成片时作为主图。不会包含身体状态、订单或 API 密钥。</small>
+</section>
+</div>
+</div>
+</section>
+<section id="device" class="view" hidden>
+<div class="eyebrow">EDGE FIRST · LOCAL MODELS</div>
+<h1>你的衣橱，留在你身边。</h1>
+<p>此版使用运行衣伴的这台设备上的模型服务。衣橱、今日感受与历史记录保存在此设备本地。</p>
+<section class="panel">
+<h2>选择已经安装的本机模型</h2>
+<label for="local-runtime">模型运行服务</label>
+<select id="local-runtime">
+<option value="ollama">Ollama</option>
+<option value="llamacpp">llama.cpp server</option>
+</select>
+<button id="detect-local-model">检测本机模型</button>
+<p id="local-model-status" role="status">尚未检测。不会自动下载、启动或安装模型，也不会转到云端。</p>
+<label for="local-model-name">已检测的本机模型</label>
+<select id="local-model-name">
+<option value="">请先检测本机模型</option>
+</select>
+<button id="use-local-model" class="primary">使用所选模型</button>
+<small>本机文本模型整理你自己描述的感受，结果需确认后再用于穿搭。OOTD 页面可选用已部署的 CIX NPU 姿势模型定位人物关键点；不通过镜头推断疲惫、经期或疾病。</small>
+</section>
+<section class="panel storage-note">
+<h2>当前版本与数据</h2>
+<p id="device-storage">此设备本地保存 · 与 Mac 原版使用独立目录</p>
+<p>开发板模式关闭云端图片识别；实时天气仍由你主动查询公开天气服务，查询只带城市或近似坐标，不带身体感受。模型未就绪时可手动勾选感受并继续搭配。</p>
+</section>
+</section>
+<section id="history" class="view" hidden>
+<div class="eyebrow">STYLE MEMORY</div>
+<h1>穿搭记忆</h1>
+<p>收藏适合自己的组合，慢慢找到你的舒适边界。</p>
+<div id="history-list">
+</div>
+</section>
+<div id="status" role="status" aria-live="polite">
+</div>
+<footer>WearMind 衣伴 Agent <span>衣橱 · 天气 · 旅途 · 图片识别</span>
+</footer>
+</main>
+<script src="/app.js">
+</script>
+<script src="/ootd.js">
+</script>
+<script src="/edge.js">
+</script>
+</body>
+</html>

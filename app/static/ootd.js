@@ -1,0 +1,55 @@
+let shootGuide=null,selectedPose='walk',cameraStream=null,ootdPhoto=null,lastGuideKey='',shareURL=null,cameraRequest=0;
+const posePaths={
+ walk:{head:[116,74],torso:'M100 104 Q119 96 136 110 L147 174 111 185 91 129Z',arms:'M99 113 Q74 141 68 167 M136 117 Q159 128 170 149',legs:'M116 181 102 241 76 285 M137 179 151 224 161 281',feet:'M76 285 57 291 M161 281 183 284'},
+ lean:{head:[126,76],torso:'M107 105 Q127 99 144 111 L153 179 114 185 101 139Z',arms:'M108 116 91 157 115 168 M142 117 161 146 174 142',legs:'M120 183 111 233 104 286 M144 182 148 232 124 279',feet:'M104 286 85 288 M124 279 144 285'},
+ sit:{head:[116,90],torso:'M98 120 Q118 110 135 122 L142 178 101 181 95 146Z',arms:'M98 128 81 172 119 193 M134 131 151 165 136 190',legs:'M108 181 155 198 156 259 M133 182 173 194 178 258',feet:'M156 259 137 267 M178 258 196 266'},
+ mirror:{head:[126,76],torso:'M107 105 Q128 99 143 113 L147 182 110 183 102 136Z',arms:'M108 117 89 143 103 92 M143 119 165 146 154 166',legs:'M117 183 107 236 100 287 M140 183 151 233 139 286',feet:'M100 287 82 290 M139 286 160 290'}
+};
+function poseSVG(id){const p=posePaths[id]||posePaths.walk;const color=current?.outfit?.find(i=>i.category==='上装')?.color||'#d5c2a8';const safe=/^#[0-9a-f]{6}$/i.test(color)?color:'#d5c2a8';return `<svg viewBox="0 0 260 330" role="img" aria-label="${(shootGuide?.poses.find(x=>x.id===id)?.title)||'拍照姿势'}示意"><path d="M24 278H236M44 30V278" fill="none" stroke="#d4cec0" stroke-width="1"/><ellipse cx="130" cy="299" rx="67" ry="8" fill="#d7ccbd" opacity=".45"/>${id==='sit'?'<path d="M84 192H177M91 192V266M169 192V266" stroke="#9a8d78" stroke-width="5" fill="none"/>':''}<path d="${p.legs}" fill="none" stroke="#606e68" stroke-width="17" stroke-linejoin="round" stroke-linecap="round"/><path d="${p.torso}" fill="${safe}" stroke="#8a7b65" stroke-width="1.4"/><path d="${p.arms}" fill="none" stroke="#bda88c" stroke-width="10" stroke-linecap="round"/><path d="M${p.head[0]-4} ${p.head[1]+16}v15" stroke="#bda88c" stroke-width="10"/><ellipse cx="${p.head[0]}" cy="${p.head[1]}" rx="16" ry="21" fill="#d7c2a4"/><path d="M${p.head[0]-16} ${p.head[1]-3} Q${p.head[0]-18} ${p.head[1]-29} ${p.head[0]+3} ${p.head[1]-23} Q${p.head[0]+22} ${p.head[1]-19} ${p.head[0]+16} ${p.head[1]+13}" fill="#655d4c"/><path d="${p.feet}" stroke="#514c43" stroke-width="9" stroke-linecap="round"/>${id==='mirror'?'<rect x="93" y="71" width="18" height="30" rx="3" fill="#7d8c7f"/>':''}<path d="M197 73Q225 117 198 153M198 153l-3-15M198 153l14-6" fill="none" stroke="#b27451" stroke-width="1.6"/><text x="171" y="50" font-size="8" fill="#9f8064" letter-spacing="2">RELAX &amp; MOVE</text></svg>`}
+function showPose(id){selectedPose=id;const p=shootGuide.poses.find(x=>x.id===id);$('#pose-title').textContent=p.title;$('#pose-drawing').innerHTML=poseSVG(id);$('#camera-pose').innerHTML=poseSVG(id);$('#pose-steps').replaceChildren(...p.steps.map(x=>el('li',x)));$('#pose-lens').textContent=p.lens;$('#pose-frame').textContent=p.frame;$('#pose-light').textContent=p.light;document.querySelectorAll('[data-pose]').forEach(b=>b.classList.toggle('selected',b.dataset.pose===id));$('#pose-teaser').textContent=p.title+' · '+p.tag}
+window.refreshOOTD=async()=>{const ctx=lastContext||{scene:'通勤'};const key=JSON.stringify(ctx);if(shootGuide&&key===lastGuideKey)return;shootGuide=await api('ootd',ctx);lastGuideKey=key;$('#pose-tabs').replaceChildren(...shootGuide.poses.map(p=>{const b=el('button',p.title);b.type='button';b.dataset.pose=p.id;b.onclick=()=>showPose(p.id);return b}));showPose(shootGuide.recommended);$('#pose-notes').replaceChildren(...shootGuide.notes.map(x=>el('p',x)));$('#ootd-context').textContent=[ctx.destination||'今天的目的地',ctx.scene,ctx.environment,(ctx.preferred_colors||[]).join('＋')].filter(Boolean).join(' · ');$('#share-preview').hidden=true;$('#download-card').hidden=true;};
+$('#open-ootd').onclick=()=>view('ootd').catch(e=>notice(e.message));
+window.stopOOTDCamera=()=>{cameraRequest++;if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;$('#camera').srcObject=null;$('#camera-wrap').hidden=true;$('#take-photo').hidden=true;$('#stop-camera').hidden=true;$('#start-camera').disabled=false};
+$('#start-camera').onclick=async()=>{if(!navigator.mediaDevices?.getUserMedia)return notice('当前浏览器不支持相机，请从相册选择成片');const request=++cameraRequest;$('#start-camera').disabled=true;try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});if(request!==cameraRequest||$('#ootd').hidden){stream.getTracks().forEach(t=>t.stop());return;}cameraStream=stream;$('#camera').srcObject=cameraStream;$('#camera-wrap').hidden=false;$('#take-photo').hidden=false;$('#stop-camera').hidden=false}catch(e){notice('相机未能打开；可以检查权限，或使用相册成片')}finally{if(!cameraStream)$('#start-camera').disabled=false}};
+$('#stop-camera').onclick=window.stopOOTDCamera;window.addEventListener('pagehide',window.stopOOTDCamera);
+function setOOTDPhoto(url){ootdPhoto=url;$('#ootd-photo-preview').src=url;$('#ootd-photo-preview').hidden=false;$('#remove-ootd-photo').hidden=false;$('#share-preview').hidden=true;$('#download-card').hidden=true;$('#npu-pose-status').textContent='照片已就绪。下一步：点“开始分析照片”，在开发板本机完成。';$('#analyze-ootd-pose').scrollIntoView({behavior:'smooth',block:'center'})}
+$('#take-photo').onclick=()=>{const video=$('#camera');if(!video.videoWidth)return notice('相机尚未准备好');const c=document.createElement('canvas'),scale=Math.min(1,1800/Math.max(video.videoWidth,video.videoHeight));c.width=Math.round(video.videoWidth*scale);c.height=Math.round(video.videoHeight*scale);c.getContext('2d').drawImage(video,0,0,c.width,c.height);setOOTDPhoto(c.toDataURL('image/jpeg',.9));notice('已拍下，照片仅保留在当前页面中')};
+$('#ootd-photo').onchange=async()=>{const f=$('#ootd-photo').files[0];if(!f)return;if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>15*1024*1024)return notice('请选择小于 15 MB 的 JPG、PNG 或 WebP');try{const image=await createImageBitmap(f),scale=Math.min(1,1800/Math.max(image.width,image.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(image.width*scale));c.height=Math.max(1,Math.round(image.height*scale));c.getContext('2d').drawImage(image,0,0,c.width,c.height);image.close();setOOTDPhoto(c.toDataURL('image/jpeg',.9))}catch{notice('无法读取这张照片，请换一张图片')}};
+$('#remove-ootd-photo').onclick=()=>{ootdPhoto=null;$('#ootd-photo').value='';$('#ootd-photo-preview').hidden=true;$('#ootd-photo-preview').removeAttribute('src');$('#remove-ootd-photo').hidden=true;$('#share-preview').hidden=true;$('#download-card').hidden=true};
+function loadImage(src){return new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(Error('衣物图片未能加载，请重试'));i.src=src})}
+function textLines(g,text,x,y,width,lineHeight,maxLines=2){let line='',lines=0;for(const ch of text){if(g.measureText(line+ch).width>width&&line){g.fillText(line,x,y+lines*lineHeight);line='';lines++;if(lines>=maxLines)return;}line+=ch}if(line&&lines<maxLines)g.fillText(line,x,y+lines*lineHeight)}
+function photoFit(g,img,x,y,w,h,cover=false){const scale=cover?Math.max(w/img.width,h/img.height):Math.min(w/img.width,h/img.height);g.save();g.beginPath();g.rect(x,y,w,h);g.clip();g.drawImage(img,x+(w-img.width*scale)/2,y+(h-img.height*scale)/2,img.width*scale,img.height*scale);g.restore()}
+$('#make-card').onclick=async()=>{if(!current?.outfit?.length)return notice('请先生成一套穿搭');const b=$('#make-card');b.disabled=true;try{const c=document.createElement('canvas');c.width=1080;c.height=1440;const g=c.getContext('2d');g.fillStyle='#f6f2e9';g.fillRect(0,0,1080,1440);g.fillStyle='#ae6546';g.font='18px sans-serif';g.fillText('WEARMIND / OUTFIT OF THE DAY',64,66);g.fillStyle='#354239';g.font='42px serif';textLines(g,$('#share-caption').value.trim()||'今天，穿得自在。',64,128,950,54,1);const refs=current.outfit.some(x=>!x.photo&&x.reference_photo);
+ if(ootdPhoto){const img=await loadImage(ootdPhoto);photoFit(g,img,64,180,952,930,true)}else{const items=current.outfit.slice(0,4);const slots=items.length<=3?[[64,200,440,420],[540,200,476,420],[250,680,580,350]]:[[64,200,440,380],[540,200,476,380],[64,640,440,380],[540,640,476,380]];for(let i=0;i<items.length;i++){const item=items[i],[x,y,w,h]=slots[i];const src=item.photo||item.reference_photo;if(src){photoFit(g,await loadImage(src),x+20,y+15,w-40,h-70)}else{g.fillStyle='#8b8d80';g.font='22px sans-serif';g.fillText('待上传实物图',x+35,y+h/2)}g.fillStyle='#354239';g.font='22px sans-serif';textLines(g,item.name,x+20,y+h-26,w-40,25,1)}}
+ g.fillStyle='#354239';g.font='24px sans-serif';textLines(g,current.outfit.map(x=>x.name).join(' ＋ '),64,1170,950,36,2);g.fillStyle='#926a4d';g.font='20px sans-serif';const p=shootGuide?.poses.find(x=>x.id===selectedPose);g.fillText('POSE / '+(p?.title||'自然放松'),64,1282);if($('#share-location').checked){const ctx=lastContext||{};g.font='18px sans-serif';textLines(g,[ctx.destination,ctx.scene,current.effective_weather?.temperature+'℃',current.effective_weather?.weather].filter(Boolean).join(' · '),64,1322,950,25,1)}g.fillStyle='#8a8d7d';g.font='16px sans-serif';g.fillText(refs&&!ootdPhoto?'衣物实物参考图 · 演示搭配，非本人衣橱实拍':'WearMind 衣伴 · 记录今天的自己',64,1374);
+ const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('生成图片失败');if(shareURL)URL.revokeObjectURL(shareURL);shareURL=URL.createObjectURL(blob);$('#share-preview').src=shareURL;$('#share-preview').hidden=false;$('#download-card').href=shareURL;$('#download-card').hidden=false;notice('分享卡已生成，请预览后保存图片')}catch(e){notice(e.message||'分享卡生成失败')}finally{b.disabled=false}};
+window.refreshOOTD().catch(e=>notice(e.message));
+
+// The photo stays on this device.  Only an installed CIX .cix model can
+// enable this button; there is deliberately no cloud fallback.
+async function npuPoseStatus(){
+ const s=await api('npu-pose/status'),button=$('#analyze-ootd-pose');
+ button.disabled=!s.configured;
+ $('#npu-pose-status').textContent=s.configured?'模型已就绪：照片只在开发板本机分析。':'本机姿势模型尚未就绪；不会改用云端。';
+ return s;
+}
+$('#analyze-ootd-pose').onclick=async()=>{
+ if(!ootdPhoto)return notice('请先选择或拍下一张 OOTD 成片');
+ const button=$('#analyze-ootd-pose');button.disabled=true;
+ $('#npu-pose-status').textContent='正在由开发板本机分析人物与姿势关键点…';
+ try{
+  const result=await api('ootd/npu-pose',{image:ootdPhoto});
+  $('#npu-pose-preview').src=result.image_url+'?t='+Date.now();
+  $('#npu-pose-preview').hidden=false;
+  $('#npu-pose-status').textContent=`已完成本机分析：检测到 ${result.people} 位人物，用时 ${result.elapsed_ms} ms。${result.tips.join(' ')}`;
+  $('#npu-pose-preview').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(error){$('#npu-pose-status').textContent=error.message;notice(error.message)}
+ finally{await npuPoseStatus().catch(()=>{button.disabled=true})}
+};
+const previousRemoveOOTDPhoto=$('#remove-ootd-photo').onclick;
+$('#remove-ootd-photo').onclick=()=>{
+ previousRemoveOOTDPhoto();
+ $('#npu-pose-preview').hidden=true;$('#npu-pose-preview').removeAttribute('src');
+ $('#npu-pose-status').textContent='请选择一张成片后再分析。';
+};
+npuPoseStatus().catch(error=>{$('#npu-pose-status').textContent='本机姿势模型状态暂时不可用：'+error.message});
