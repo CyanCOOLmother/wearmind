@@ -53,14 +53,25 @@
 <section id="quick-start" class="quick-start" aria-label="快速开始" hidden>
 <div>
 <span class="section-label">QUICK START</span>
-<h2>现在要穿去哪里？</h2>
-<p>选一个最接近的场景，衣伴会直接用现有衣橱给你一套；细节以后再改。</p>
+<h2>30 秒，先解决今天穿什么</h2>
+<p id="quick-guide" role="status">正在查看本机衣橱…</p>
+<p>先选今天最在意的一点，再点去哪里。本机助手会读取需要的信息，给出一套和理由。</p>
+<div class="quick-needs" aria-label="今天最在意什么">
+<button type="button" data-quick-need="舒服" aria-pressed="true">舒服一点</button>
+<button type="button" data-quick-need="怕冷" aria-pressed="false">有点怕冷</button>
+<button type="button" data-quick-need="利落" aria-pressed="false">利落一点</button>
+</div>
 </div>
 <div class="quick-scenes">
 <button type="button" data-quick-scene="通勤" data-quick-state="想穿得舒服、利落一点">上班通勤</button>
 <button type="button" data-quick-scene="客户会面" data-quick-state="想显得得体、可靠一点">见客户</button>
 <button type="button" data-quick-scene="休闲" data-quick-state="今天想轻松舒服一点">周末出门</button>
 <button type="button" data-quick-scene="约会" data-quick-state="想有一点精致感，但不要太费力">约会拍照</button>
+</div>
+<div id="quick-followup" class="quick-followup" hidden>
+<span>这套还不对？不用重新填。</span>
+<button type="button" id="quick-more-formal">换得正式一点</button>
+<button type="button" data-view="closet">衣橱里缺衣服？先补一件</button>
 </div>
 </section>
 <div class="layout">
