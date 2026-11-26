@@ -61,6 +61,27 @@ def _tips(people):
     return ['已检测到一位主体人物和姿势关键点，人物轮廓可用于检查全身构图。', '拍穿搭记录时，尽量保留头顶、衣摆和鞋子附近的少量空间，方便看清整体比例。', '这项分析只做人物与姿势定位，不推断身材、情绪或健康状态。']
 
 
+def _composition(box, points, width, height):
+    """Use visible pose landmarks to assess photo coverage, not clothing or body shape."""
+    if box is None or points is None:
+        return {'coverage':'未检测到主体','head_clear':False,'feet_clear':False,
+                'tips':['请换一张人物更清晰的照片；无法判断穿搭是否完整入画。']}
+    def visible(index):
+        x, y, confidence = points[index]
+        return confidence >= .35 and 0 <= x < width and 0 <= y < height
+    head = any(visible(i) for i in range(5))
+    feet = visible(15) and visible(16)
+    hips = visible(11) and visible(12)
+    coverage = '全身关键点可见' if head and hips and feet else ('上半身可见' if head and hips else '人物关键点不完整')
+    tips = []
+    if not head: tips.append('头部关键点不清晰或未入画；如果要展示全套穿搭，可以调整拍摄距离与角度。')
+    if not feet: tips.append('脚踝关键点不清晰，可能被遮挡或未入画；若想展示鞋履，请确认脚部完整可见。')
+    if box[0] <= width*.02 or box[2] >= width*.98:
+        tips.append('人物靠近画面侧边；适当留白更容易看清衣物轮廓。')
+    if not tips: tips.append('主要人物的头部、髋部和脚踝关键点均可见，可作为整套穿搭记录。')
+    return {'coverage':coverage,'head_clear':head,'feet_clear':feet,'tips':tips}
+
+
 def analyze(image_path: Path, output_path: Path) -> dict:
     if not status()['configured']:
         raise ValueError('本机 NPU 姿势模型尚未就绪；不会改用云端分析')
@@ -83,6 +104,7 @@ def analyze(image_path: Path, output_path: Path) -> dict:
         if engine is not None: engine.clean()
     raw = raw[raw[:, 4] >= .45]
     people = 0
+    main_box = main_points = None
     if len(raw):
         boxes = raw[:, :4].copy(); boxes[:, 0] -= boxes[:, 2]/2; boxes[:, 1] -= boxes[:, 3]/2; boxes[:, 2] += boxes[:, 0]; boxes[:, 3] += boxes[:, 1]
         for index in _nms(boxes, raw[:, 4], np)[:3]:
@@ -91,6 +113,8 @@ def analyze(image_path: Path, output_path: Path) -> dict:
             x1, y1, x2, y2 = (x1-left)/scale, (y1-top)/scale, (x2-left)/scale, (y2-top)/scale
             cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (32, 210, 122), 2)
             keypoints = raw[index, 5:].reshape(17, 3).copy(); keypoints[:, 0] = (keypoints[:, 0]-left)/scale; keypoints[:, 1] = (keypoints[:, 1]-top)/scale
+            if people == 1:
+                main_box, main_points = (x1,y1,x2,y2), keypoints
             for x, y, confidence in keypoints:
                 if confidence >= .35: cv2.circle(image, (int(x), int(y)), 3, (45, 184, 255), -1)
             for a, b in SKELETON:
@@ -99,4 +123,7 @@ def analyze(image_path: Path, output_path: Path) -> dict:
         cv2.putText(image, 'No person detected', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, .8, (40, 40, 220), 2)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if not cv2.imwrite(str(output_path), image): raise ValueError('无法保存本机分析结果')
-    return {'people': people, 'elapsed_ms': elapsed, 'tips': _tips(people), 'provider': 'CIX NPU / YOLOv11n-Pose'}
+    composition = _composition(main_box, main_points, image.shape[1], image.shape[0])
+    return {'people': people, 'elapsed_ms': elapsed, 'tips': _tips(people) + composition['tips'],
+            'composition':{key:value for key,value in composition.items() if key != 'tips'},
+            'provider': 'CIX NPU / YOLOv11n-Pose'}
