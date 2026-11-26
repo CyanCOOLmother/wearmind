@@ -68,11 +68,6 @@
 <button type="button" data-quick-scene="休闲" data-quick-state="今天想轻松舒服一点">周末出门</button>
 <button type="button" data-quick-scene="约会" data-quick-state="想有一点精致感，但不要太费力">约会拍照</button>
 </div>
-<div id="quick-followup" class="quick-followup" hidden>
-<span>这套还不对？不用重新填。</span>
-<button type="button" id="quick-more-formal">换得正式一点</button>
-<button type="button" data-view="closet">衣橱里缺衣服？先补一件</button>
-</div>
 </section>
 <div class="layout">
 <form id="context" class="panel">
@@ -198,7 +193,7 @@
 <span class="pill">衣橱内搭配</span>
 </div>
 <p id="generation-status" class="generation-status" role="status">已展示一套初始搭配。输入今天的想法后，点击“直接给我一套”更新结果。</p>
-<div id="agent-trace" role="status" hidden></div>
+<details id="agent-trace" hidden><summary>本机助手做了什么</summary><div id="agent-trace-steps"></div></details>
 <div class="look-meta">
 <span id="look-context">TODAY’S LOOK</span>
 <span id="look-palette">
@@ -213,6 +208,11 @@
 </ul>
 </div>
 <div id="shopping-needs">
+</div>
+<div id="quick-followup" class="quick-followup" hidden>
+<span>这套还不对？不用重新填。</span>
+<button type="button" id="quick-more-formal">换得正式一点</button>
+<button type="button" data-view="closet">衣橱里缺衣服？先补一件</button>
 </div>
 <div class="actions">
 <button id="save" class="primary">保存今日穿搭</button>
