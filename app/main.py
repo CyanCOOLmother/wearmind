@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from .engine import recommend, CATEGORIES
 from .colors import PALETTE
 from .ootd import guidance
-from . import local_model
+from . import local_model, agent
 
 ROOT = Path(__file__).resolve().parent
 DATA = Path(os.environ.get('WEARMIND_DATA', ROOT.parent / 'data'))
@@ -141,6 +141,17 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path == '/api/recommend':
                 avoided=[x['item_id'] for x in records('feedback') if x.get('action')=='avoid']
                 result=recommend(body,records('wardrobe'),avoided)
+            elif self.path == '/api/agent/run':
+                sid=body.get('session_id') or uuid.uuid4().hex
+                if not isinstance(sid,str) or not re.fullmatch(r'[0-9a-f]{32}',sid): raise ValueError('会话编号无效')
+                previous=next((x for x in records('agent-session') if x['id']==sid),None)
+                result=agent.run(body.get('goal'),body.get('context'),records,previous)
+                turns=(previous or {}).get('turns',[])[-9:]
+                turns.append({'goal':body['goal'],'scene':result['context'].get('scene'),
+                              'outfit':[x['id'] for x in result['outfit']]})
+                save('agent-session',{'id':sid,'context':result['context'],'turn':len(turns),'turns':turns})
+                result['agent']['session_id']=sid
+                result['agent']['turn']=len(turns)
             elif self.path == '/api/wardrobe':
                 name=str(body.get('name','')).strip()[:60]
                 if not name or body.get('category') not in CATEGORIES: raise ValueError('请填写衣物名称与分类')

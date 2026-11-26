@@ -105,3 +105,37 @@ def understand(text):
     except (ValueError,KeyError,TypeError,IndexError): raise ValueError('本地模型结果不完整，请重试或手动勾选感受')
     return {**confirmed,'model':MODEL,'runtime':RUNTIME,'elapsed_ms':round((time.perf_counter()-started)*1000),
             'source':'本机模型理解，等待用户确认','requires_confirmation':True}
+
+
+def choose_tools(goal):
+    """Let the local model select bounded read tools for one outfit task."""
+    if not isinstance(goal, str) or not 1 <= len(goal.strip()) <= 500:
+        raise ValueError('请描述这次穿搭目标（最多 500 字）')
+    if not MODEL or MODEL not in status()['models']:
+        raise ValueError('本机模型未就绪；仍可使用普通穿搭推荐')
+    prompt = ('你是衣橱穿搭助手。只输出JSON对象，格式为'
+              '{"tools":["history","feedback"],"reason":"简短理由"}。'
+              '工具只能从history（读取既往穿搭）和feedback（读取喜欢或避开的单品）中选择。'
+              '按需选择，可为空数组，不得编造工具结果、天气、衣物或健康信息。')
+    messages = [{'role':'system','content':prompt},{'role':'user','content':goal}]
+    if RUNTIME == 'ollama':
+        payload = {'model':MODEL,'messages':messages,'stream':False,'format':'json',
+                   'options':{'temperature':0,'num_predict':120}}
+        endpoint = '/api/chat'
+    else:
+        payload = {'model':MODEL,'messages':messages,'stream':False,'temperature':0,
+                   'max_tokens':120,'response_format':{'type':'json_object'}}
+        endpoint = '/v1/chat/completions'
+    started = time.perf_counter()
+    response = request_json(RUNTIME,endpoint,payload,timeout=90)
+    try:
+        content = response['message']['content'] if RUNTIME == 'ollama' else response['choices'][0]['message']['content']
+        data = json.loads(content)
+        requested = data['tools']
+        if not isinstance(requested,list) or any(x not in ('history','feedback') for x in requested):
+            raise ValueError('模型选择了不允许的工具')
+        tools = list(dict.fromkeys(requested))[:2]
+    except (KeyError,TypeError,IndexError,json.JSONDecodeError) as error:
+        raise ValueError('本机模型未给出有效任务步骤，请使用普通推荐') from error
+    return {'tools':tools,'reason':str(data.get('reason',''))[:120],
+            'model':MODEL,'elapsed_ms':round((time.perf_counter()-started)*1000)}
