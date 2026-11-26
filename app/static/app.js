@@ -37,12 +37,12 @@ document.querySelectorAll('[data-quick-scene]').forEach(button=>button.onclick=a
  const state=button.dataset.quickState+(quickNeed==='怕冷'?'，今天有点怕冷':quickNeed==='利落'?'，想穿得更利落':'，优先舒服');
  $('#scene').value=button.dataset.quickScene;$('#state').value=state;$('#state').dispatchEvent(new Event('input'));
  if(typeof setBodyFlags==='function')setBodyFlags(quickNeed==='怕冷'?['怕冷']:[]);
- button.disabled=true;$('#quick-guide').textContent='本机助手正在查看衣橱和需要的记录，请稍候…';
+ const originalLabel=button.textContent;button.disabled=true;button.textContent='正在搭配…';$('#quick-guide').textContent='本机助手正在查看衣橱和需要的记录，请稍候…';$('#generation-status').textContent='正在按你选的条件生成，请稍候…';$('.result').scrollIntoView({behavior:'smooth',block:'start'});
  try{await generate(context(),true);$('#quick-followup').hidden=false;$('#generation-status').textContent=current.agent.degraded?'本机模型暂不可用，已用规则给出一套。下方可以继续调整。':'已按你选的场景和在意点给出一套；下方可以继续调整。';$('#quick-guide').textContent=current.agent.degraded?'本机模型暂不可用，已按普通规则搭配；你仍可以继续调整。':'先看这一套；不合适可直接说“换得正式一点”，不用重新填写。';$('.result').scrollIntoView({behavior:'smooth',block:'start'})}
- catch(error){$('#quick-guide').textContent='这次没生成成功：'+error.message+'。也可使用下方普通推荐。';notice(error.message)}
- finally{button.disabled=false}
+ catch(error){$('#quick-guide').textContent='这次没生成成功：'+error.message+'。也可使用下方普通推荐。';$('#generation-status').textContent='本机助手未完成：'+error.message+'。可以点左侧“直接给我一套”使用普通规则。';notice(error.message)}
+ finally{button.disabled=false;button.textContent=originalLabel}
 });
-$('#quick-more-formal').onclick=async()=>{$('#state').value='换得正式一点';$('#state').dispatchEvent(new Event('input'));try{await generate(context(),true);$('#scene').value=current.context.scene;$('#quick-guide').textContent='已按刚才那套调整为更正式的场景。';$('.result').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){notice(error.message)}};
+$('#quick-more-formal').onclick=async()=>{const b=$('#quick-more-formal');b.disabled=true;b.textContent='正在调整…';$('#generation-status').textContent='正在按上一套调整为更正式的场景…';$('#state').value='换得正式一点';$('#state').dispatchEvent(new Event('input'));try{await generate(context(),true);$('#scene').value=current.context.scene;$('#quick-guide').textContent='已按刚才那套调整为更正式的场景。';$('.result').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){$('#generation-status').textContent='调整失败：'+error.message;notice(error.message)}finally{b.disabled=false;b.textContent='换得正式一点'}};
 document.querySelectorAll('[data-start-mode]').forEach(button=>button.onclick=async()=>{
  if(button.dataset.startMode==='closet'){await view('closet');return;}
  const start=$('#quick-start');start.hidden=false;
