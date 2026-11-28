@@ -33,7 +33,7 @@ def records(kind):
         for item in result:
             asset=PHOTO_MANIFEST.get(item.get('name'))
             if asset and not item.get('photo') and item.get('color') == asset['original_color']:
-                item.update(reference_photo='/assets/'+asset['file'],reference_source=asset['source_url'])
+                item.update(reference_photo='/assets/'+asset['file'],reference_source=asset['source_url'],reference_kind=asset.get('kind'))
     return result
 
 def save(kind, body):
@@ -55,6 +55,20 @@ def seed():
         ('羊毛大衣','外套',['保暖','厚重','客户会面'],'#766456')]:
         save('wardrobe',dict(id=uuid.uuid4().hex,name=name,category=cat,tags=tags,color=color))
     save('initialized',{'id':'seed-v1'})
+
+def seed_user_references():
+    """Add the five user-supplied sample garments once, including existing installs."""
+    with db() as c:
+        if c.execute('SELECT 1 FROM records WHERE id=?', ('seed-user-references-20261127',)).fetchone(): return
+    for ident,name,category,tags,color in [
+        ('black-wide-trousers','黑色高腰阔腿裤','下装',['通勤','客户会面','舒适'],'#202020'),
+        ('ivory-wide-trousers','米白高腰阔腿裤','下装',['通勤','休闲','舒适'],'#e5dcc9'),
+        ('blue-straight-jeans','浅蓝直筒牛仔裤','下装',['休闲','舒适'],'#83a5ba'),
+        ('camel-long-coat','驼色长款大衣','外套',['保暖','通勤','客户会面'],'#b99c7e'),
+        ('blue-striped-shirt','蓝白条纹衬衫','上装',['通勤','透气','休闲'],'#bdd2e1'),
+    ]:
+        save('wardrobe',dict(id='reference-'+ident,name=name,category=category,tags=tags,color=color,reference_kind='user_provided_reference'))
+    save('initialized',{'id':'seed-user-references-20261127'})
 
 class Handler(BaseHTTPRequestHandler):
     def output(self, code, data):
@@ -189,6 +203,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__=='__main__':
     seed()
+    seed_user_references()
     saved_settings=records('model-settings')
     if saved_settings:
         config=saved_settings[-1]

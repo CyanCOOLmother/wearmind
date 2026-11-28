@@ -87,5 +87,10 @@
     "kind": "demo_reference",
     "original_file": "coat.jpg",
     "processing": "imagegen-background-extraction"
-  }
+  },
+  "黑色高腰阔腿裤": {"file":"reference-black-wide-trousers.webp","source_url":"/assets/reference-black-wide-trousers.webp","original_color":"#202020","kind":"user_provided_reference","processing":"original-transparent-webp"},
+  "米白高腰阔腿裤": {"file":"reference-ivory-wide-trousers.webp","source_url":"/assets/reference-ivory-wide-trousers.webp","original_color":"#e5dcc9","kind":"user_provided_reference","processing":"original-transparent-webp"},
+  "浅蓝直筒牛仔裤": {"file":"reference-blue-straight-jeans.webp","source_url":"/assets/reference-blue-straight-jeans.webp","original_color":"#83a5ba","kind":"user_provided_reference","processing":"original-transparent-webp"},
+  "驼色长款大衣": {"file":"reference-camel-long-coat.webp","source_url":"/assets/reference-camel-long-coat.webp","original_color":"#b99c7e","kind":"user_provided_reference","processing":"original-transparent-webp"},
+  "蓝白条纹衬衫": {"file":"reference-blue-striped-shirt.webp","source_url":"/assets/reference-blue-striped-shirt.webp","original_color":"#bdd2e1","kind":"user_provided_reference","processing":"original-transparent-webp"}
 }

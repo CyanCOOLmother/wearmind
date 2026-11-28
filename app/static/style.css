@@ -89,3 +89,10 @@ main{max-width:1660px;padding:34px clamp(20px,3vw,52px) 30px}
 #agent-trace summary{cursor:pointer;font-weight:600}
 #agent-trace-steps p{margin:7px 0;line-height:1.5}
 @media(max-width:850px){.result .quick-followup{display:grid;grid-template-columns:1fr 1fr}.result .quick-followup span{grid-column:1/-1}.result .quick-followup button{font-size:12px}}
+
+/* Competition recording: show only paths that are ready to demonstrate. */
+nav [data-view="trip"],nav [data-view="device"],
+.quick-closet-panel,.wish-panel,
+#recognize,#vision-status,
+.weather-tools,.destination-tools,
+.share-panel,#start-camera{display:none!important}

@@ -14,15 +14,20 @@ class OOTDTests(unittest.TestCase):
         for p in guidance({})['poses']:
             self.assertEqual(len(p['steps']),3)
             self.assertTrue(all(p[k] for k in ('lens','frame','light')))
-    def test_active_references_are_alpha_png(self):
+    def test_active_references_are_supported_images(self):
         for asset in main.PHOTO_MANIFEST.values():
             raw=(main.ROOT/'static/assets'/asset['file']).read_bytes()
-            self.assertEqual(raw[:8],b'\x89PNG\r\n\x1a\n')
-            self.assertIn(raw[25],(4,6))
+            if asset['file'].endswith('.png'):
+                self.assertEqual(raw[:8],b'\x89PNG\r\n\x1a\n')
+                self.assertIn(raw[25],(4,6))
+            else:
+                self.assertTrue(asset['file'].endswith('.webp'))
+                self.assertEqual(raw[:4],b'RIFF')
+                self.assertEqual(raw[8:12],b'WEBP')
     def test_reference_assets_present(self):
-        self.assertEqual(len(main.PHOTO_MANIFEST),10)
+        self.assertEqual(len(main.PHOTO_MANIFEST),15)
         for asset in main.PHOTO_MANIFEST.values():
             self.assertTrue((main.ROOT/'static/assets'/asset['file']).is_file())
-            self.assertTrue(asset['source_url'].startswith('https://'))
+            self.assertTrue(asset['source_url'].startswith(('https://','/assets/')))
 
 if __name__=='__main__': unittest.main()

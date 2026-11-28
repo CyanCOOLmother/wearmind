@@ -68,7 +68,7 @@ def _composition(box, points, width, height):
                 'tips':['请换一张人物更清晰的照片；无法判断穿搭是否完整入画。']}
     def visible(index):
         x, y, confidence = points[index]
-        return confidence >= .35 and 0 <= x < width and 0 <= y < height
+        return bool(confidence >= .35 and 0 <= x < width and 0 <= y < height)
     head = any(visible(i) for i in range(5))
     feet = visible(15) and visible(16)
     hips = visible(11) and visible(12)
